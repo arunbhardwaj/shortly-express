@@ -14,6 +14,25 @@ class Links extends Model {
   constructor() {
     super('links');
     this.rValidUrl = /^(?!mailto:)(?:(?:https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?(?:(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[0-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))|localhost)(?::\d{2,5})?(?:\/[^\s]*)?$/i;
+    /* If you want to understand the regex string
+    ^(?!mailto:)(?:(?:https?|ftp):\/\/)? // protocol
+    (?:\S+(?::\S*)?@)?
+    (?:(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])
+          (?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}
+          (?:\.(?:[0-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)
+          (?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*
+          (?:\.(?:[a-z\u00a1-\uffff]{2,}))
+        )|localhost)
+    (?::\d{2,5})?(?:\/[^\s]*)?$
+
+
+    '^(https?:\\/\\/)?'+ // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+    */
   }
 
   /**
@@ -28,7 +47,7 @@ class Links extends Model {
       let match = response.body.match(tag);
       let title = match ? match[1] : url;
       return title;
-    }); 
+    });
   }
 
   /**
