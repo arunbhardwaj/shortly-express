@@ -1,29 +1,9 @@
-const models = require('../models');
+const {Sessions} = require('../models');
 const Promise = require('bluebird');
 const _ = require('lodash');
 
 module.exports.createSession = (req, res, next) => {
   req.session = {};
-<<<<<<< Updated upstream
-  if (req.cookies.hasOwnProperty('shortlyid')) {
-    console.log('hit create session');
-    models.Sessions.get({ hash: req.cookies['shortlyid'] }).then((session) => {
-      console.log(session);
-      console.log(_.isEmpty(session));
-
-      if (session) {
-        session.userId ? session.user = req.body.username : fsdjf;
-      } else {
-
-      }
-    });
-  } else {
-    models.Sessions.create()
-      .then((results) => models.Sessions.get({ id: results.insertId }))
-      .then((session) => {
-        req.cookies['shortlyid'] = session.hash;
-        req.session.userId = session.userId;
-=======
   if (req.cookies != null && req.cookies.shortlyid != null) {
     // Get the session associated with the hash
     // console.log('req cookies are: ', req.cookies);
@@ -55,7 +35,6 @@ module.exports.createSession = (req, res, next) => {
       .then((results) => Sessions.get({ id: results.insertId }))
       .then((session) => {
         req.cookies['shortlyid'] = session.hash;
->>>>>>> Stashed changes
         req.session.hash = session.hash;
         res.cookie('shortlyid', session.hash);
         next();
