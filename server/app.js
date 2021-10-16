@@ -81,6 +81,37 @@ app.post('/links',
 
 // "/login"
 // "/signup"
+app.post('/login', (req, res) => {
+  let { username, password } = req.body;
+  models.Users.get({username})
+    .then(result => {
+      if (result === undefined) {
+        res.redirect('/login');
+      } else {
+        let isCredentialsCorrect = models.Users.compare( password, result.password, result.salt);
+
+        (isCredentialsCorrect)
+          ? res.redirect('/')
+          : res.redirect('/login');
+      }
+
+    });
+
+});
+// TODO: create session
+
+app.post('/signup', (req, res) => {
+  let { username, password } = req.body;
+  models.Users.checkForUser({username})
+    .then(result => {
+      return (result)
+        ? res.status(400).redirect('/signup').json('Username is already chosen.')
+        : models.Users.create({username, password});
+    })
+    .then(result => res.status(201).redirect('/').send())
+    .catch(err => res.status(400).send());
+});
+
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail

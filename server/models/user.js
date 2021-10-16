@@ -44,6 +44,19 @@ class Users extends Model {
 
     return super.create.call(this, newUser);
   }
+
+  checkForUser({username}) {
+    return new Promise((resolve, reject) => {
+      this.get({username})
+        .then(result => {
+          if (result !== undefined && result.username === username) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        });
+    });
+  }
 }
 
 module.exports = new Users();
