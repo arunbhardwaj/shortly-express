@@ -4,34 +4,31 @@ const _ = require('lodash');
 
 module.exports.createSession = (req, res, next) => {
   req.session = {};
-  console.log('req cookie');
-  console.log('hit1');
   Promise.resolve(req.cookies.shortlyid)
     .then((hash) => {
-      console.log('hit2');
-      if (!hash) {
+      if (!hash) { // hash doesn't exist
         throw null;
       } else {
-        return Session.get({ hash: req.cookies.shortlyid });
+        return Sessions.get({ hash: hash });
       }
     })
     .then((session) => {
-      console.log('hit3');
-      if (session == null) {
-        throw Error('null');
+      if (session == null) { // hash is not in database
+        throw null;
       } else {
         Object.assign(req.session, session);
       }
     })
     .catch((err) => {
-      console.log('hit4');
-      Sessions.create()
-        .then((results) => Sessions.get({ id: results.insertId }))
+      return Sessions.create()
+        .then((results) => {
+          return Sessions.get({ id: results.insertId });
+        })
         .then((session) => {
           req.cookies['shortlyid'] = session.hash;
+          // Object.assign(req.session, session);
           req.session.hash = session.hash;
-          console.log(req.session);
-          res.cookies.shortlyid = session.hash;
+          res.cookie('shortlyid', session.hash);
         });
     })
     .then(() => next());
@@ -40,6 +37,12 @@ module.exports.createSession = (req, res, next) => {
 /************************************************************/
 // Add additional authentication middleware functions below
 /************************************************************/
+
+module.exports.verifySession = (req, res) => {
+  if (!Sessions.isLoggedIn(req.session)) {
+    res.redirect('/login');
+  }
+};
 
 // In middleware/auth.js, write a createSession middleware function that accesses the parsed cookies on the request, looks up the user data related to that session, and assigns an object to a session property on the request that contains relevant user information. (Ask yourself: what information about the user would you want to keep in this session object?)
 // Things to keep in mind:
