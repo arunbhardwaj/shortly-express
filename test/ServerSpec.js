@@ -614,7 +614,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Link creation:', function() {
+  describe('Link creation:', function() {
 
     var cookies = request.jar();
     var requestWithSession = request.defaults({ jar: cookies });
@@ -627,7 +627,7 @@ describe('', function() {
       }
     };
 
-    xbeforeEach(function(done) {
+    beforeEach(function(done) {
       var options = {
         'method': 'POST',
         'followAllRedirects': true,
@@ -707,6 +707,20 @@ describe('', function() {
 
       var link;
 
+      var loginUser = function(callback) {
+
+        var options = {
+          'method': 'POST',
+          'uri': 'http://127.0.0.1:4568/login',
+          'json': {
+            'username': 'Vivian',
+            'password': 'Vivian'
+          }
+        };
+
+        requestWithSession(options, callback);
+      };
+
       beforeEach(function(done) {
         // save a link to the database
         link = {
@@ -756,11 +770,18 @@ describe('', function() {
           'uri': 'http://127.0.0.1:4568/doesNotExist'
         };
 
-        requestWithSession(options, function(error, res, body) {
-          if (error) { return done(error); }
-          var currentLocation = res.request.href;
-          expect(currentLocation).to.equal('http://127.0.0.1:4568/');
-          done();
+        /********************************************************
+         * **************************************************** *
+         * *** YOU MUST BE LOGGED IN TO EVEN DO THESE TESTS.*** *
+         * **************************************************** *
+         *******************************************************/
+        loginUser(() => {
+          requestWithSession(options, function(error, res, body) {
+            if (error) { return done(error); }
+            var currentLocation = res.request.href;
+            expect(currentLocation).to.equal('http://127.0.0.1:4568/');
+            done();
+          });
         });
       });
 
@@ -770,11 +791,13 @@ describe('', function() {
           'uri': 'http://127.0.0.1:4568/links'
         };
 
-        requestWithSession(options, function(error, res, body) {
-          if (error) { return done(error); }
-          expect(body).to.include('"title":"Google"');
-          expect(body).to.include('"code":"' + link.code + '"');
-          done();
+        loginUser(() => {
+          requestWithSession(options, function(error, res, body) {
+            if (error) { return done(error); }
+            expect(body).to.include('"title":"Google"');
+            expect(body).to.include('"code":"' + link.code + '"');
+            done();
+          });
         });
       });
     });

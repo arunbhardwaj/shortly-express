@@ -17,18 +17,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser);
 app.use(Auth.createSession);
-
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get('/', (req, res) => {
+
+app.get('/', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/create', (req, res) => {
+app.get('/create', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/links', (req, res, next) => {
+app.get('/links', Auth.verifySession, (req, res, next) => {
   models.Links.getAll()
     .then((links) => {
       res.status(200).send(links);
@@ -77,6 +77,14 @@ app.post('/links', (req, res, next) => {
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.get('/signup', (req, res) => {
+  res.render('signup');
+});
+
 // "/login"
 // "/signup"
 app.post('/login', (req, res) => {
@@ -120,7 +128,7 @@ app.get('/logout', (req, res) => {
       res.clearCookie('shortlyid'); // does'nt matter which you do, the redirect is wahts causeing the test to pass
       // res.cookie('shortlyid', 'hi');
       res.status(200).redirect('/login').send();
-      //TODO:
+      //TODO:why does th redirect make the correct impact?
     });
 });
 
@@ -129,8 +137,6 @@ app.get('/logout', (req, res) => {
 // assume the route is a short code and try and handle it here.
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
-
-
 
 
 app.get('/:code', (req, res, next) => {
