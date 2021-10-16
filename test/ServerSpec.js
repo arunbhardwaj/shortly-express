@@ -479,7 +479,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Sessions and cookies', function() {
+  describe('Sessions and cookies', function() {
     var requestWithSession;
     var cookieJar;
 
@@ -488,6 +488,20 @@ describe('', function() {
       var options = {
         'method': 'POST',
         'uri': 'http://127.0.0.1:4568/signup',
+        'json': {
+          'username': 'Vivian',
+          'password': 'Vivian'
+        }
+      };
+
+      requestWithSession(options, callback);
+    };
+
+    var loginUser = function(callback) {
+
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/login',
         'json': {
           'username': 'Vivian',
           'password': 'Vivian'
@@ -528,19 +542,23 @@ describe('', function() {
     it('assigns session to a user when user logs in', function(done) {
       addUser(function(err, res, body) {
         if (err) { return done(err); }
-        var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
-        var cookieValue = cookies[0].value;
+        loginUser(function (err, res, body) {
+          if (err) { return done(err); }
+          var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
+          var cookieValue = cookies[0].value;
 
-        var queryString = `
-          SELECT users.username FROM users, sessions
-          WHERE sessions.hash = ? AND users.id = sessions.userId
-        `;
+          var queryString = `
+            SELECT users.username FROM users, sessions
+            WHERE sessions.hash = ? AND users.id = sessions.userId
+          `;
 
-        db.query(queryString, cookieValue, function(error, users) {
-          if (error) { return done(error); }
-          var user = users[0];
-          expect(user.username).to.equal('Vivian');
-          done();
+          db.query(queryString, cookieValue, function(error, users) {
+            if (error) { return done(error); }
+            var user = users[0];
+            expect(user.username).to.equal('Vivian');
+            done();
+          });
+
         });
       });
     });
@@ -569,7 +587,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Privileged Access:', function() {
+  describe('Privileged Access:', function() {
 
     it('Redirects to login page if a user tries to access the main page and is not signed in', function(done) {
       request('http://127.0.0.1:4568/', function(error, res, body) {
@@ -596,7 +614,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Link creation:', function() {
+  describe('Link creation:', function() {
 
     var cookies = request.jar();
     var requestWithSession = request.defaults({ jar: cookies });
@@ -609,7 +627,7 @@ describe('', function() {
       }
     };
 
-    xbeforeEach(function(done) {
+    beforeEach(function(done) {
       var options = {
         'method': 'POST',
         'followAllRedirects': true,
@@ -689,6 +707,20 @@ describe('', function() {
 
       var link;
 
+      var loginUser = function(callback) {
+
+        var options = {
+          'method': 'POST',
+          'uri': 'http://127.0.0.1:4568/login',
+          'json': {
+            'username': 'Vivian',
+            'password': 'Vivian'
+          }
+        };
+
+        requestWithSession(options, callback);
+      };
+
       beforeEach(function(done) {
         // save a link to the database
         link = {
@@ -738,11 +770,18 @@ describe('', function() {
           'uri': 'http://127.0.0.1:4568/doesNotExist'
         };
 
-        requestWithSession(options, function(error, res, body) {
-          if (error) { return done(error); }
-          var currentLocation = res.request.href;
-          expect(currentLocation).to.equal('http://127.0.0.1:4568/');
-          done();
+        /********************************************************
+         * **************************************************** *
+         * *** YOU MUST BE LOGGED IN TO EVEN DO THESE TESTS.*** *
+         * **************************************************** *
+         *******************************************************/
+        loginUser(() => {
+          requestWithSession(options, function(error, res, body) {
+            if (error) { return done(error); }
+            var currentLocation = res.request.href;
+            expect(currentLocation).to.equal('http://127.0.0.1:4568/');
+            done();
+          });
         });
       });
 
@@ -752,11 +791,13 @@ describe('', function() {
           'uri': 'http://127.0.0.1:4568/links'
         };
 
-        requestWithSession(options, function(error, res, body) {
-          if (error) { return done(error); }
-          expect(body).to.include('"title":"Google"');
-          expect(body).to.include('"code":"' + link.code + '"');
-          done();
+        loginUser(() => {
+          requestWithSession(options, function(error, res, body) {
+            if (error) { return done(error); }
+            expect(body).to.include('"title":"Google"');
+            expect(body).to.include('"code":"' + link.code + '"');
+            done();
+          });
         });
       });
     });
