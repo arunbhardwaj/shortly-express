@@ -4,6 +4,7 @@ const _ = require('lodash');
 
 module.exports.createSession = (req, res, next) => {
   req.session = {};
+<<<<<<< Updated upstream
   if (req.cookies.hasOwnProperty('shortlyid')) {
     console.log('hit create session');
     models.Sessions.get({ hash: req.cookies['shortlyid'] }).then((session) => {
@@ -22,6 +23,39 @@ module.exports.createSession = (req, res, next) => {
       .then((session) => {
         req.cookies['shortlyid'] = session.hash;
         req.session.userId = session.userId;
+=======
+  if (req.cookies != null && req.cookies.shortlyid != null) {
+    // Get the session associated with the hash
+    // console.log('req cookies are: ', req.cookies);
+    Sessions.get({ hash: req.cookies.shortlyid }).then((session) => {
+      // console.log('session is:', session);
+      let { hash } = session;
+
+      if (session == null) { // The session isn't valid
+        // console.log('session is undeifned');
+        Sessions.create()
+          .then((results) => Sessions.get({ id: results.insertId }))
+          .then((session) => {
+            // console.log('session is:', session);
+            req.cookies.shortlyid = hash;
+            req.session.hash = hash;
+            // res.clearCookie('shortlyid');
+            // res.cookie('shortlyid', hash);
+            res.cookies.shortlyid = hash;
+            console.log('res cookies', res.cookies);
+          });
+      } else {
+        // The session is valid
+        Object.assign(req.session, session);
+      }
+      next();
+    });
+  } else {
+    Sessions.create()
+      .then((results) => Sessions.get({ id: results.insertId }))
+      .then((session) => {
+        req.cookies['shortlyid'] = session.hash;
+>>>>>>> Stashed changes
         req.session.hash = session.hash;
         res.cookie('shortlyid', session.hash);
         next();
